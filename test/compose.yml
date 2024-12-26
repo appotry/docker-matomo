@@ -1,56 +1,46 @@
-version: "3.5"
+name: matomo
 
 services:
   db:
-    image: mariadb:10.5
+    image: mariadb:10
+    container_name: matomo_db
     command:
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
       - "--max_allowed_packet=256M"
+    networks:
+      - matomo
     volumes:
       - "db:/var/lib/mysql"
     environment:
-      - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
-      - "MYSQL_DATABASE=matomo"
-      - "MYSQL_USER=matomo"
-      - "MYSQL_PASSWORD=asupersecretpassword"
+      - "TZ"
+      - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
+      - "MYSQL_DATABASE"
+      - "MYSQL_USER"
+      - "MYSQL_PASSWORD"
     restart: always
 
   redis:
     image: redis:4.0-alpine
-    restart: always
-
-  msmtpd:
-    image: crazymax/msmtpd:latest
-    env_file:
-      - "./msmtpd.env"
-    environment:
-      - "TZ"
-    restart: always
-
-  geoip-updater:
-    image: crazymax/geoip-updater:latest
-    volumes:
-      - "geoip-updater:/data"
-    env_file:
-      - "./geoip-updater.env"
-    environment:
-      - "TZ"
+    container_name: matomo_redis
+    networks:
+      - matomo
     restart: always
 
   matomo:
-    image: crazymax/matomo:latest
+    image: ${MATOMO_IMAGE:-crazymax/matomo:latest}
+    container_name: ${MATOMO_CONTAINER:-matomo}
     depends_on:
       - db
       - redis
-      - msmtpd
+    networks:
+      - matomo
     ports:
       - target: 8000
         published: 8000
         protocol: tcp
     volumes:
       - "matomo:/data"
-      - "geoip-updater:/data/geoip"
     env_file:
       - "./matomo.env"
     environment:
@@ -58,12 +48,14 @@ services:
     restart: always
 
   cron:
-    image: crazymax/matomo:latest
+    image: ${MATOMO_IMAGE:-crazymax/matomo:latest}
+    container_name: matomo_cron
     depends_on:
+      - matomo
+    networks:
       - matomo
     volumes:
       - "matomo:/data"
-      - "geoip-updater:/data/geoip"
     env_file:
       - "./matomo.env"
     environment:
@@ -77,5 +69,8 @@ services:
 
 volumes:
   db:
-  geoip-updater:
   matomo:
+
+networks:
+  matomo:
+    name: matomo

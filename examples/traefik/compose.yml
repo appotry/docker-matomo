@@ -1,4 +1,4 @@
-version: "3.5"
+name: matomo
 
 services:
   traefik:
@@ -35,7 +35,7 @@ services:
     restart: always
 
   db:
-    image: mariadb:10.5
+    image: mariadb:10
     command:
       - "--character-set-server=utf8mb4"
       - "--collation-server=utf8mb4_unicode_ci"
@@ -43,10 +43,11 @@ services:
     volumes:
       - "db:/var/lib/mysql"
     environment:
-      - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
-      - "MYSQL_DATABASE=matomo"
-      - "MYSQL_USER=matomo"
-      - "MYSQL_PASSWORD=asupersecretpassword"
+      - "TZ"
+      - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
+      - "MYSQL_DATABASE"
+      - "MYSQL_USER"
+      - "MYSQL_PASSWORD"
     restart: always
 
   redis:

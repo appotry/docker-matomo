@@ -1,0 +1,82 @@
+name: matomo
+
+services:
+  db:
+    image: mariadb:10
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+      - "--max_allowed_packet=256M"
+    volumes:
+      - "db:/var/lib/mysql"
+    environment:
+      - "TZ"
+      - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
+      - "MYSQL_DATABASE"
+      - "MYSQL_USER"
+      - "MYSQL_PASSWORD"
+    restart: always
+
+  redis:
+    image: redis:4.0-alpine
+    restart: always
+
+  msmtpd:
+    image: crazymax/msmtpd:latest
+    env_file:
+      - "./msmtpd.env"
+    environment:
+      - "TZ"
+    restart: always
+
+  geoip-updater:
+    image: crazymax/geoip-updater:latest
+    volumes:
+      - "geoip-updater:/data"
+    env_file:
+      - "./geoip-updater.env"
+    environment:
+      - "TZ"
+    restart: always
+
+  matomo:
+    image: crazymax/matomo:latest
+    depends_on:
+      - db
+      - redis
+      - msmtpd
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+    volumes:
+      - "matomo:/data"
+      - "geoip-updater:/data/geoip"
+    env_file:
+      - "./matomo.env"
+    environment:
+      - "TZ"
+    restart: always
+
+  cron:
+    image: crazymax/matomo:latest
+    depends_on:
+      - matomo
+    volumes:
+      - "matomo:/data"
+      - "geoip-updater:/data/geoip"
+    env_file:
+      - "./matomo.env"
+    environment:
+      - "TZ"
+      - "SIDECAR_CRON=1"
+      - "CRON_ARCHIVE=0 * * * *"
+      - "ARCHIVE_OPTIONS=--concurrent-requests-per-website=3"
+    healthcheck:
+      disable: true
+    restart: always
+
+volumes:
+  db:
+  geoip-updater:
+  matomo:

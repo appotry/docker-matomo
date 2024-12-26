@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://hub.docker.com/r/crazymax/matomo/tags?page=1&ordering=last_updated"><img src="https://img.shields.io/github/v/tag/crazy-max/docker-matomo?label=version&style=flat-square" alt="Latest Version"></a>
-  <a href="https://github.com/crazy-max/docker-matomo/actions?workflow=build"><img src="https://img.shields.io/github/workflow/status/crazy-max/docker-matomo/build?label=build&logo=github&style=flat-square" alt="Build Status"></a>
+  <a href="https://github.com/crazy-max/docker-matomo/actions?workflow=build"><img src="https://img.shields.io/github/actions/workflow/status/crazy-max/docker-matomo/build.yml?branch=master&label=build&logo=github&style=flat-square" alt="Build Status"></a>
   <a href="https://hub.docker.com/r/crazymax/matomo/"><img src="https://img.shields.io/docker/stars/crazymax/matomo.svg?style=flat-square&logo=docker" alt="Docker Stars"></a>
   <a href="https://hub.docker.com/r/crazymax/matomo/"><img src="https://img.shields.io/docker/pulls/crazymax/matomo.svg?style=flat-square&logo=docker" alt="Docker Pulls"></a>
   <br /><a href="https://github.com/sponsors/crazy-max"><img src="https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square" alt="Become a sponsor"></a>
@@ -11,10 +11,11 @@
 
 ## About
 
-[Matomo](https://matomo.org/) (formerly Piwik) Docker image based on Alpine Linux and Nginx.<br />
-If you are interested, [check out](https://hub.docker.com/r/crazymax/) my other Docker images!
+[Matomo](https://matomo.org/) (formerly Piwik) Docker image.
 
-💡 Want to be notified of new releases? Check out 🔔 [Diun (Docker Image Update Notifier)](https://github.com/crazy-max/diun) project!
+> [!TIP] 
+> Want to be notified of new releases? Check out 🔔 [Diun (Docker Image Update Notifier)](https://github.com/crazy-max/diun)
+> project!
 
 ___
 
@@ -76,24 +77,25 @@ docker buildx bake image-all
 
 ## Image
 
-| Registry                                                                                         | Image                           |
-|--------------------------------------------------------------------------------------------------|---------------------------------|
-| [Docker Hub](https://hub.docker.com/r/crazymax/matomo/)                                            | `crazymax/matomo`                 |
-| [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/matomo)  | `ghcr.io/crazy-max/matomo`        |
+| Registry                                                                                          | Image                      |
+|---------------------------------------------------------------------------------------------------|----------------------------|
+| [Docker Hub](https://hub.docker.com/r/crazymax/matomo/)                                           | `crazymax/matomo`          |
+| [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/matomo) | `ghcr.io/crazy-max/matomo` |
 
 Following platforms for this image are available:
 
 ```
-$ docker run --rm mplatform/mquery crazymax/matomo:latest
-Image: crazymax/matomo:latest
- * Manifest List: Yes
- * Supported platforms:
-   - linux/amd64
-   - linux/arm/v6
-   - linux/arm64
-   - linux/386
-   - linux/ppc64le
-   - linux/s390x
+$ docker buildx imagetools inspect crazymax/matomo --format "{{json .Manifest}}" | \
+  jq -r '.manifests[] | select(.platform.os != null and .platform.os != "unknown") | .platform | "\(.os)/\(.architecture)\(if .variant then "/" + .variant else "" end)"'
+
+linux/386
+linux/amd64
+linux/arm/v6
+linux/arm/v7
+linux/arm64
+linux/ppc64le
+linux/riscv64
+linux/s390x
 ```
 
 ## Environment variables
@@ -139,8 +141,8 @@ in `/var/matomo/` on your host for example. Edit the compose and env files with 
 commands:
 
 ```shell
-docker-compose up -d
-docker-compose logs -f
+docker compose up -d
+docker compose logs -f
 # open your browser at http://localhost:8000
 ```
 
@@ -170,8 +172,8 @@ You can upgrade Matomo automatically through the UI, it works well. But I recomm
 whenever I push an update:
 
 ```shell
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```
 
 ## Notes
@@ -181,13 +183,13 @@ docker-compose up -d
 If you want to use the `console` command to perform common server operations, type:
 
 ```shell
-docker-compose exec matomo console
+docker compose exec matomo console
 ```
 
 ### Email server settings
 
-You can use our SMTP relay `msmtpd` service published on port `2500` and declared in our
-[`docker-compose.yml`](examples/compose/docker-compose.yml):
+You can use our SMTP relay `msmtpd` service published on port `2500` and
+declared in the [`compose.yml`](examples/compose/compose.yml):
 
 ![Email server settings](.github/email-server-settings.png)
 
@@ -198,7 +200,7 @@ On a HA environment, **enable backend sticky sessions** on your load balancer.
 ### Cron
 
 If you want to enable the cron job, you have to run a "sidecar" container like in the
-[docker-compose file](examples/compose/docker-compose.yml) or run a simple container like this:
+[compose file](examples/compose/compose.yml) or run a simple container like this:
 
 ```bash
 docker run -d --name matomo_cron \
@@ -270,9 +272,10 @@ If you are on a [HA environment](https://matomo.org/faq/new-to-piwik/faq_134/), 
 
 ## Contributing
 
-Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues. You
-can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) or by making
-a [Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely!
+Want to contribute? Awesome! The most basic way to show your support is to star
+the project, or to raise issues. You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max)
+or by making a [PayPal donation](https://www.paypal.me/crazyws) to ensure this
+journey continues indefinitely!
 
 Thanks again for your support, it is much appreciated! :pray:
 

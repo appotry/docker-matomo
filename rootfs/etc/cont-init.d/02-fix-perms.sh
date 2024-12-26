@@ -10,10 +10,10 @@ mkdir -p /data/config \
   /data/tmp \
   /var/lib/nginx \
   /var/log/nginx \
-  /var/log/php8 \
+  /var/log/php83 \
   /var/run/nginx \
   /var/run/php-fpm
-chown matomo. \
+chown matomo:matomo \
   /data \
   /data/config \
   /data/geoip \
@@ -23,12 +23,13 @@ chown matomo. \
   /data/tmp \
   /var/www/matomo/plugins \
   /var/www/matomo/matomo.js \
-  /var/www/matomo/piwik.js
-chown -R matomo. \
+  /var/www/matomo/piwik.js \
+  /var/www/matomo/vendor/tecnickcom/tcpdf/fonts
+chown -R matomo:matomo \
   /tpls \
   /var/lib/nginx \
   /var/log/nginx \
-  /var/log/php8 \
+  /var/log/php83 \
   /var/run/nginx \
   /var/run/php-fpm \
   /var/www/matomo/config \

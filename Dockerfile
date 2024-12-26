@@ -1,26 +1,22 @@
-ARG MATOMO_VERSION=4.7.1
+# syntax=docker/dockerfile:1
 
-FROM crazymax/yasu:latest AS yasu
-FROM --platform=${BUILDPLATFORM:-linux/amd64} crazymax/alpine-s6:3.15-2.2.0.3 AS download
+ARG MATOMO_VERSION=5.2.1
+ARG ALPINE_VERSION=3.21
+
+FROM --platform=${BUILDPLATFORM} crazymax/alpine-s6:${ALPINE_VERSION}-2.2.0.3 AS download
 RUN apk --update --no-cache add curl tar unzip xz
-
 ARG MATOMO_VERSION
 WORKDIR /dist/matomo
 RUN curl -sSL "https://builds.matomo.org/matomo-${MATOMO_VERSION}.tar.gz" | tar xz matomo --strip 1
 RUN curl -sSL "https://matomo.org/wp-content/uploads/unifont.ttf.zip" -o "unifont.ttf.zip"
 RUN unzip "unifont.ttf.zip" -d "./plugins/ImageGraph/fonts/"
 RUN rm -f "unifont.ttf.zip"
-
 WORKDIR /dist/mmdb
 RUN curl -SsOL "https://github.com/crazy-max/geoip-updater/raw/mmdb/GeoLite2-ASN.mmdb" \
   && curl -SsOL "https://github.com/crazy-max/geoip-updater/raw/mmdb/GeoLite2-City.mmdb" \
   && curl -SsOL "https://github.com/crazy-max/geoip-updater/raw/mmdb/GeoLite2-Country.mmdb"
 
-FROM crazymax/alpine-s6:3.15-2.2.0.3
-
-COPY --from=yasu / /
-COPY --from=download --chown=nobody:nogroup /dist/matomo /var/www/matomo
-COPY --from=download --chown=nobody:nogroup /dist/mmdb /var/mmdb
+FROM crazymax/alpine-s6:${ALPINE_VERSION}-2.2.0.3
 
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
   TZ="UTC" \
@@ -29,6 +25,10 @@ ENV S6_BEHAVIOUR_IF_STAGE2_FAILS="2" \
   MATOMO_PLUGIN_DIRS="/var/www/matomo/data-plugins/;data-plugins" \
   MATOMO_PLUGIN_COPY_DIR="/var/www/matomo/data-plugins/"
 
+COPY --from=crazymax/yasu:latest / /
+COPY --from=download --chown=nobody:nogroup /dist/matomo /var/www/matomo
+COPY --from=download --chown=nobody:nogroup /dist/mmdb /var/mmdb
+
 RUN apk --update --no-cache add \
     bash \
     ca-certificates \
@@ -36,33 +36,32 @@ RUN apk --update --no-cache add \
     libmaxminddb \
     nginx \
     openssl \
-    php8 \
-    php8-bcmath \
-    php8-cli \
-    php8-ctype \
-    php8-curl \
-    php8-dom \
-    php8-iconv \
-    php8-fpm \
-    php8-gd \
-    php8-gmp \
-    php8-json \
-    php8-ldap \
-    php8-mbstring \
-    php8-opcache \
-    php8-openssl \
-    php8-pdo \
-    php8-pdo_mysql \
-    php8-pecl-maxminddb \
-    php8-redis \
-    php8-session \
-    php8-simplexml \
-    php8-xml \
-    php8-zlib \
+    php83 \
+    php83-bcmath \
+    php83-cli \
+    php83-ctype \
+    php83-curl \
+    php83-dom \
+    php83-iconv \
+    php83-fpm \
+    php83-gd \
+    php83-gmp \
+    php83-json \
+    php83-ldap \
+    php83-mbstring \
+    php83-opcache \
+    php83-openssl \
+    php83-pdo \
+    php83-pdo_mysql \
+    php83-pecl-maxminddb \
+    php83-redis \
+    php83-session \
+    php83-simplexml \
+    php83-xml \
+    php83-zlib \
     rsync \
     shadow \
     tzdata \
-  && ln -s /usr/bin/php8 /usr/bin/php \
   && addgroup -g ${PGID} matomo \
   && adduser -D -H -u ${PUID} -G matomo -h /var/www/matomo  -s /bin/sh matomo \
   && rm -rf /tmp/*
